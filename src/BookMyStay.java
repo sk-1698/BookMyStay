@@ -1,30 +1,25 @@
 import java.util.*;
 
 
- //UC4
+//  UC5
 
 
 public class BookMyStay {
 
     public static void main(String[] args) {
 
-        System.out.println("===== Book My Stay - UC4 FIFO Booking =====");
-
+        System.out.println("===== Book My Stay - UC5 Double Booking Prevention =====");
 
         RoomInventory inventory = new RoomInventory();
-
-
         BookingManager bookingManager = new BookingManager(inventory);
 
-
+        // Booking Requests
         bookingManager.addBookingRequest("Rohan", "Single");
         bookingManager.addBookingRequest("Aryan", "Double");
-        bookingManager.addBookingRequest("Kiran", "Suite");
+        bookingManager.addBookingRequest("Rohan", "Suite");   // Duplicate customer
         bookingManager.addBookingRequest("Vijay", "Single");
 
-
         bookingManager.processBookings();
-
 
         inventory.displayInventory();
     }
@@ -37,7 +32,6 @@ class RoomInventory {
 
     public RoomInventory() {
         availability = new HashMap<>();
-
         availability.put("Single", 2);
         availability.put("Double", 1);
         availability.put("Suite", 1);
@@ -64,10 +58,12 @@ class BookingManager {
 
     private Queue<BookingRequest> requestQueue;
     private RoomInventory inventory;
+    private Set<String> confirmedCustomers;   // NEW
 
     public BookingManager(RoomInventory inventory) {
         this.inventory = inventory;
         requestQueue = new LinkedList<>();
+        confirmedCustomers = new HashSet<>();
     }
 
     public void addBookingRequest(String customerName, String roomType) {
@@ -83,7 +79,14 @@ class BookingManager {
 
             BookingRequest request = requestQueue.poll();
 
+            // Check duplicate booking
+            if (confirmedCustomers.contains(request.customerName)) {
+                System.out.println("Booking rejected for " + request.customerName + " (Duplicate Booking)");
+                continue;
+            }
+
             if (inventory.bookRoom(request.roomType)) {
+                confirmedCustomers.add(request.customerName);
                 System.out.println("Booking confirmed for " + request.customerName);
             } else {
                 System.out.println("Booking failed for " + request.customerName + " (No rooms available)");
