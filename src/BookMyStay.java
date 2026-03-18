@@ -1,10 +1,10 @@
 import java.util.*;
 
-public class BookMyStayApp {
-//UC8
+public class BookMyStay{
+//UC9
     public static void main(String[] args) {
 
-        System.out.println("===== Book My Stay - UC8 Booking History =====");
+        System.out.println("===== Book My Stay - UC9 Error Handling =====");
 
         RoomInventory inventory = new RoomInventory();
         BookingManager manager = new BookingManager(inventory);
@@ -12,13 +12,12 @@ public class BookMyStayApp {
         manager.addBookingRequest("Rohan", "Single");
         manager.addBookingRequest("Aryan", "Double");
         manager.addBookingRequest("Kiran", "Suite");
+        manager.addBookingRequest("Vijay", "Luxury"); // invalid type
 
         manager.processBookings();
 
         inventory.displayInventory();
-
         manager.displayServices();
-
         manager.displayBookingHistory();
     }
 }
@@ -37,9 +36,13 @@ class RoomInventory {
         availability.put("Suite", 1);
     }
 
-    public boolean bookRoom(String type) {
+    public boolean bookRoom(String type) throws Exception {
 
-        if (availability.getOrDefault(type, 0) > 0) {
+        if (!availability.containsKey(type)) {
+            throw new Exception("Invalid Room Type: " + type);
+        }
+
+        if (availability.get(type) > 0) {
 
             availability.put(type, availability.get(type) - 1);
             return true;
@@ -69,7 +72,6 @@ class BookingManager {
     private HashMap<String, Set<String>> roomTypeMap;
     private HashMap<String, List<String>> roomServices;
 
-    // UC8 Booking History
     private List<String> bookingHistory;
 
     private int roomCounter = 100;
@@ -82,11 +84,16 @@ class BookingManager {
         allocatedRoomIds = new HashSet<>();
         roomTypeMap = new HashMap<>();
         roomServices = new HashMap<>();
-
         bookingHistory = new ArrayList<>();
     }
 
     public void addBookingRequest(String name, String roomType) {
+
+        if (name == null || name.isEmpty()) {
+
+            System.out.println("Invalid customer name.");
+            return;
+        }
 
         queue.add(new BookingRequest(name, roomType));
 
@@ -101,29 +108,36 @@ class BookingManager {
 
             BookingRequest request = queue.poll();
 
-            if (inventory.bookRoom(request.roomType)) {
+            try {
 
-                String roomId = generateRoomId(request.roomType);
+                if (inventory.bookRoom(request.roomType)) {
 
-                allocatedRoomIds.add(roomId);
+                    String roomId = generateRoomId(request.roomType);
 
-                roomTypeMap.putIfAbsent(request.roomType, new HashSet<>());
-                roomTypeMap.get(request.roomType).add(roomId);
+                    allocatedRoomIds.add(roomId);
 
-                addDefaultServices(roomId);
+                    roomTypeMap.putIfAbsent(request.roomType, new HashSet<>());
+                    roomTypeMap.get(request.roomType).add(roomId);
 
-                String record = request.customerName + " -> " + roomId;
+                    addDefaultServices(roomId);
 
-                bookingHistory.add(record);
+                    String record = request.customerName + " -> " + roomId;
+                    bookingHistory.add(record);
 
-                System.out.println("Reservation confirmed for "
-                        + request.customerName +
-                        " | Room ID: " + roomId);
-            }
+                    System.out.println("Reservation confirmed for "
+                            + request.customerName +
+                            " | Room ID: " + roomId);
+                }
 
-            else {
+                else {
 
-                System.out.println("No rooms available for " + request.customerName);
+                    System.out.println("No rooms available for " + request.customerName);
+                }
+
+            } catch (Exception e) {
+
+                System.out.println("Error processing booking for "
+                        + request.customerName + ": " + e.getMessage());
             }
         }
     }
@@ -132,7 +146,7 @@ class BookingManager {
 
         roomCounter++;
 
-        return type.substring(0,1).toUpperCase() + roomCounter;
+        return type.substring(0, 1).toUpperCase() + roomCounter;
     }
 
 
@@ -155,7 +169,6 @@ class BookingManager {
             System.out.println(roomId + " -> " + roomServices.get(roomId));
         }
     }
-
 
     public void displayBookingHistory() {
 
