@@ -1,10 +1,10 @@
 import java.util.*;
 
-public class BookMyStay{
-//UC9
+public class BookMyStay {
+//UC10
     public static void main(String[] args) {
 
-        System.out.println("===== Book My Stay - UC9 Error Handling =====");
+        System.out.println("===== Book My Stay - UC10 Booking Cancellation =====");
 
         RoomInventory inventory = new RoomInventory();
         BookingManager manager = new BookingManager(inventory);
@@ -12,13 +12,15 @@ public class BookMyStay{
         manager.addBookingRequest("Rohan", "Single");
         manager.addBookingRequest("Aryan", "Double");
         manager.addBookingRequest("Kiran", "Suite");
-        manager.addBookingRequest("Vijay", "Luxury"); // invalid type
 
         manager.processBookings();
 
-        inventory.displayInventory();
-        manager.displayServices();
         manager.displayBookingHistory();
+
+
+        manager.cancelBooking("S101");
+
+        inventory.displayInventory();
     }
 }
 
@@ -51,9 +53,14 @@ class RoomInventory {
         return false;
     }
 
+    public void returnRoom(String type) {
+
+        availability.put(type, availability.get(type) + 1);
+    }
+
     public void displayInventory() {
 
-        System.out.println("\nRemaining Rooms:");
+        System.out.println("\nCurrent Inventory:");
 
         for (String type : availability.keySet()) {
 
@@ -68,10 +75,7 @@ class BookingManager {
     private Queue<BookingRequest> queue;
     private RoomInventory inventory;
 
-    private Set<String> allocatedRoomIds;
-    private HashMap<String, Set<String>> roomTypeMap;
-    private HashMap<String, List<String>> roomServices;
-
+    private HashMap<String, String> roomBookings;
     private List<String> bookingHistory;
 
     private int roomCounter = 100;
@@ -81,19 +85,11 @@ class BookingManager {
         this.inventory = inventory;
 
         queue = new LinkedList<>();
-        allocatedRoomIds = new HashSet<>();
-        roomTypeMap = new HashMap<>();
-        roomServices = new HashMap<>();
+        roomBookings = new HashMap<>();
         bookingHistory = new ArrayList<>();
     }
 
     public void addBookingRequest(String name, String roomType) {
-
-        if (name == null || name.isEmpty()) {
-
-            System.out.println("Invalid customer name.");
-            return;
-        }
 
         queue.add(new BookingRequest(name, roomType));
 
@@ -114,14 +110,10 @@ class BookingManager {
 
                     String roomId = generateRoomId(request.roomType);
 
-                    allocatedRoomIds.add(roomId);
-
-                    roomTypeMap.putIfAbsent(request.roomType, new HashSet<>());
-                    roomTypeMap.get(request.roomType).add(roomId);
-
-                    addDefaultServices(roomId);
+                    roomBookings.put(roomId, request.roomType);
 
                     String record = request.customerName + " -> " + roomId;
+
                     bookingHistory.add(record);
 
                     System.out.println("Reservation confirmed for "
@@ -136,38 +128,34 @@ class BookingManager {
 
             } catch (Exception e) {
 
-                System.out.println("Error processing booking for "
-                        + request.customerName + ": " + e.getMessage());
+                System.out.println("Error: " + e.getMessage());
             }
         }
+    }
+
+
+    public void cancelBooking(String roomId) {
+
+        if (!roomBookings.containsKey(roomId)) {
+
+            System.out.println("Invalid Room ID: " + roomId);
+            return;
+        }
+
+        String roomType = roomBookings.get(roomId);
+
+        inventory.returnRoom(roomType);
+
+        roomBookings.remove(roomId);
+
+        System.out.println("Booking cancelled for Room ID: " + roomId);
     }
 
     private String generateRoomId(String type) {
 
         roomCounter++;
 
-        return type.substring(0, 1).toUpperCase() + roomCounter;
-    }
-
-
-    private void addDefaultServices(String roomId) {
-
-        List<String> services = new ArrayList<>();
-
-        services.add("WiFi");
-        services.add("Breakfast");
-
-        roomServices.put(roomId, services);
-    }
-
-    public void displayServices() {
-
-        System.out.println("\nRoom Services:");
-
-        for (String roomId : roomServices.keySet()) {
-
-            System.out.println(roomId + " -> " + roomServices.get(roomId));
-        }
+        return type.substring(0,1).toUpperCase() + roomCounter;
     }
 
     public void displayBookingHistory() {
