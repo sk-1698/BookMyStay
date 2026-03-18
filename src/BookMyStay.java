@@ -1,10 +1,10 @@
 import java.util.*;
 
 public class BookMyStay {
-//UC6
+//UC7
     public static void main(String[] args) {
 
-        System.out.println("===== Book My Stay - UC6 Room Allocation =====");
+        System.out.println("===== Book My Stay - UC7 Add-On Services =====");
 
         RoomInventory inventory = new RoomInventory();
         BookingManager manager = new BookingManager(inventory);
@@ -12,11 +12,12 @@ public class BookMyStay {
         manager.addBookingRequest("Rohan", "Single");
         manager.addBookingRequest("Aryan", "Double");
         manager.addBookingRequest("Kiran", "Suite");
-        manager.addBookingRequest("Vijay", "Single");
 
         manager.processBookings();
 
         inventory.displayInventory();
+
+        manager.displayServices();
     }
 }
 
@@ -65,6 +66,8 @@ class BookingManager {
     private Set<String> allocatedRoomIds;
     private HashMap<String, Set<String>> roomTypeMap;
 
+    private HashMap<String, List<String>> roomServices;
+
     private int roomCounter = 100;
 
     public BookingManager(RoomInventory inventory) {
@@ -74,6 +77,7 @@ class BookingManager {
         queue = new LinkedList<>();
         allocatedRoomIds = new HashSet<>();
         roomTypeMap = new HashMap<>();
+        roomServices = new HashMap<>();
     }
 
     public void addBookingRequest(String name, String roomType) {
@@ -100,6 +104,8 @@ class BookingManager {
                 roomTypeMap.putIfAbsent(request.roomType, new HashSet<>());
                 roomTypeMap.get(request.roomType).add(roomId);
 
+                addDefaultServices(roomId);
+
                 System.out.println("Reservation confirmed for "
                         + request.customerName +
                         " | Room ID: " + roomId);
@@ -117,6 +123,28 @@ class BookingManager {
         roomCounter++;
 
         return type.substring(0,1).toUpperCase() + roomCounter;
+    }
+
+    // ================= UC7 SERVICE FEATURE =================
+
+    private void addDefaultServices(String roomId) {
+
+        List<String> services = new ArrayList<>();
+
+        services.add("WiFi");
+        services.add("Breakfast");
+
+        roomServices.put(roomId, services);
+    }
+
+    public void displayServices() {
+
+        System.out.println("\nRoom Services:");
+
+        for (String roomId : roomServices.keySet()) {
+
+            System.out.println(roomId + " -> " + roomServices.get(roomId));
+        }
     }
 }
 
