@@ -1,10 +1,10 @@
 import java.util.*;
 
-public class BookMyStay {
-//UC7
+public class BookMyStayApp {
+//UC8
     public static void main(String[] args) {
 
-        System.out.println("===== Book My Stay - UC7 Add-On Services =====");
+        System.out.println("===== Book My Stay - UC8 Booking History =====");
 
         RoomInventory inventory = new RoomInventory();
         BookingManager manager = new BookingManager(inventory);
@@ -18,10 +18,12 @@ public class BookMyStay {
         inventory.displayInventory();
 
         manager.displayServices();
+
+        manager.displayBookingHistory();
     }
 }
 
-// ================= INVENTORY =================
+
 class RoomInventory {
 
     private HashMap<String, Integer> availability;
@@ -57,7 +59,7 @@ class RoomInventory {
     }
 }
 
-// ================= BOOKING MANAGER =================
+
 class BookingManager {
 
     private Queue<BookingRequest> queue;
@@ -65,8 +67,10 @@ class BookingManager {
 
     private Set<String> allocatedRoomIds;
     private HashMap<String, Set<String>> roomTypeMap;
-
     private HashMap<String, List<String>> roomServices;
+
+    // UC8 Booking History
+    private List<String> bookingHistory;
 
     private int roomCounter = 100;
 
@@ -78,6 +82,8 @@ class BookingManager {
         allocatedRoomIds = new HashSet<>();
         roomTypeMap = new HashMap<>();
         roomServices = new HashMap<>();
+
+        bookingHistory = new ArrayList<>();
     }
 
     public void addBookingRequest(String name, String roomType) {
@@ -106,6 +112,10 @@ class BookingManager {
 
                 addDefaultServices(roomId);
 
+                String record = request.customerName + " -> " + roomId;
+
+                bookingHistory.add(record);
+
                 System.out.println("Reservation confirmed for "
                         + request.customerName +
                         " | Room ID: " + roomId);
@@ -125,7 +135,6 @@ class BookingManager {
         return type.substring(0,1).toUpperCase() + roomCounter;
     }
 
-    // ================= UC7 SERVICE FEATURE =================
 
     private void addDefaultServices(String roomId) {
 
@@ -146,9 +155,20 @@ class BookingManager {
             System.out.println(roomId + " -> " + roomServices.get(roomId));
         }
     }
+
+
+    public void displayBookingHistory() {
+
+        System.out.println("\nBooking History:");
+
+        for (String record : bookingHistory) {
+
+            System.out.println(record);
+        }
+    }
 }
 
-// ================= BOOKING REQUEST =================
+
 class BookingRequest {
 
     String customerName;
