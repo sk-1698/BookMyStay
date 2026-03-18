@@ -1,32 +1,22 @@
 import java.util.*;
-
+import java.io.*;
+//UC12
 public class BookMyStay {
-//UC11
+
     public static void main(String[] args) {
 
-        System.out.println("===== Book My Stay - UC11 Concurrent Booking =====");
+        System.out.println("===== Book My Stay - UC12 Data Persistence =====");
 
         RoomInventory inventory = new RoomInventory();
         BookingManager manager = new BookingManager(inventory);
 
-        // Simulating multiple users booking at same time
-        Thread t1 = new Thread(() -> manager.bookRoom("Rohan", "Single"));
-        Thread t2 = new Thread(() -> manager.bookRoom("Aryan", "Single"));
-        Thread t3 = new Thread(() -> manager.bookRoom("Kiran", "Single"));
+        manager.bookRoom("Rohan", "Single");
+        manager.bookRoom("Aryan", "Double");
+        manager.bookRoom("Kiran", "Suite");
 
-        t1.start();
-        t2.start();
-        t3.start();
+        manager.displayBookingHistory();
 
-        try {
-            t1.join();
-            t2.join();
-            t3.join();
-        } catch (InterruptedException e) {
-            System.out.println("Thread interrupted");
-        }
-
-        inventory.displayInventory();
+        manager.saveBookingsToFile();
     }
 }
 
@@ -44,7 +34,6 @@ class RoomInventory {
         availability.put("Suite", 1);
     }
 
-    // synchronized to avoid race condition
     public synchronized boolean bookRoom(String type) {
 
         if (!availability.containsKey(type)) {
@@ -55,21 +44,10 @@ class RoomInventory {
         if (availability.get(type) > 0) {
 
             availability.put(type, availability.get(type) - 1);
-
             return true;
         }
 
         return false;
-    }
-
-    public synchronized void displayInventory() {
-
-        System.out.println("\nRemaining Rooms:");
-
-        for (String type : availability.keySet()) {
-
-            System.out.println(type + " : " + availability.get(type));
-        }
     }
 }
 
@@ -77,12 +55,14 @@ class RoomInventory {
 class BookingManager {
 
     private RoomInventory inventory;
+    private List<String> bookingHistory;
 
     private int roomCounter = 100;
 
     public BookingManager(RoomInventory inventory) {
 
         this.inventory = inventory;
+        bookingHistory = new ArrayList<>();
     }
 
     public void bookRoom(String customer, String type) {
@@ -91,17 +71,16 @@ class BookingManager {
 
             String roomId = generateRoomId(type);
 
-            System.out.println(customer +
-                    " successfully booked room " +
-                    roomId +
-                    " (" + type + ")");
+            String record = customer + " -> " + roomId + " (" + type + ")";
+
+            bookingHistory.add(record);
+
+            System.out.println("Booking confirmed: " + record);
         }
 
         else {
 
-            System.out.println("Booking failed for " +
-                    customer +
-                    " (No rooms available)");
+            System.out.println("Booking failed for " + customer);
         }
     }
 
@@ -110,5 +89,37 @@ class BookingManager {
         roomCounter++;
 
         return type.substring(0,1).toUpperCase() + roomCounter;
+    }
+
+    public void displayBookingHistory() {
+
+        System.out.println("\nBooking History:");
+
+        for (String record : bookingHistory) {
+
+            System.out.println(record);
+        }
+    }
+
+    // ================= UC12 FILE SAVE =================
+    public void saveBookingsToFile() {
+
+        try {
+
+            FileWriter writer = new FileWriter("booking_history.txt");
+
+            for (String record : bookingHistory) {
+
+                writer.write(record + "\n");
+            }
+
+            writer.close();
+
+            System.out.println("\nBooking history saved to file: booking_history.txt");
+
+        } catch (IOException e) {
+
+            System.out.println("Error saving file: " + e.getMessage());
+        }
     }
 }
