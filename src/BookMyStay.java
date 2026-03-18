@@ -1,65 +1,41 @@
+import java.util.HashMap;
+
 public class BookMyStay {
-    //UC2
+
     public static void main(String[] args) {
 
-        System.out.println("===== Available Room Details =====");
+        System.out.println("===== Book My Stay - Room Inventory =====");
 
+        RoomInventory inventory = new RoomInventory();
+        inventory.displayInventory();
 
-        Room single = new SingleRoom();
-        Room doubleRoom = new DoubleRoom();
-        Room suite = new SuiteRoom();
-
-
-        int singleAvailable = 5;
-        int doubleAvailable = 3;
-        int suiteAvailable = 2;
-
-
-        single.displayDetails();
-        System.out.println("Available: " + singleAvailable);
-        System.out.println();
-
-        doubleRoom.displayDetails();
-        System.out.println("Available: " + doubleAvailable);
-        System.out.println();
-
-        suite.displayDetails();
-        System.out.println("Available: " + suiteAvailable);
+        System.out.println("\nChecking Availability of Single Room:");
+        System.out.println("Available: " + inventory.getAvailability("Single"));
     }
 }
 
+// ===== Room Inventory Class (UC3) =====
+class RoomInventory {
 
-abstract class Room {
+    private HashMap<String, Integer> availability;
 
-    protected String type;
-    protected double price;
+    public RoomInventory() {
+        availability = new HashMap<>();
 
-    public Room(String type, double price) {
-        this.type = type;
-        this.price = price;
+        availability.put("Single", 5);
+        availability.put("Double", 3);
+        availability.put("Suite", 2);
     }
 
-    public void displayDetails() {
-        System.out.println("Room Type: " + type);
-        System.out.println("Price: ₹" + price);
+    public int getAvailability(String type) {
+        return availability.getOrDefault(type, 0);
     }
-}
 
+    public void displayInventory() {
+        System.out.println("Current Room Availability:");
 
-class SingleRoom extends Room {
-    public SingleRoom() {
-        super("Single Room", 2000);
-    }
-}
-
-class DoubleRoom extends Room {
-    public DoubleRoom() {
-        super("Double Room", 3500);
-    }
-}
-
-class SuiteRoom extends Room {
-    public SuiteRoom() {
-        super("Suite Room", 6000);
+        for (String type : availability.keySet()) {
+            System.out.println(type + " Rooms: " + availability.get(type));
+        }
     }
 }
